@@ -10,7 +10,7 @@ import wristcam.gui.*;
 /**
  * Core class that handles the communication with the watch
  * @author Kees Jongenburger
- * @version $Id: CasioWristCamCommunicator.java,v 1.1 2002/11/03 11:01:03 keesj Exp $
+ * @version $Id: CasioWristCamCommunicator.java,v 1.2 2002/11/12 20:06:51 keesj Exp $
  **/
 public class CasioWristCamCommunicator {
     public static final byte PACKET_START_BYTE = (byte)0xc0;
@@ -65,9 +65,19 @@ public class CasioWristCamCommunicator {
         
     }
     
-    public void close(){
+    public void close() throws IOException{
         //TODO send data to the watch to finish connection..
-
+        sendFrame("54 06");
+        byte[] data = readFrame();
+        if (data[1] != 0x43){
+            error("excpeting 0x43 as answer while trying to close connection{"+bu.byteToString(data[1])+"}");
+        }
+        sendFrame("53");
+        data = readFrame();
+        if (data[1] != 0x63){
+            error("excpeting 0x63 as answer while trying to close connection{"+ bu.byteToString(data[1])+"}");
+        }
+        
         serialPort.close();
     }
     
@@ -118,17 +128,17 @@ public class CasioWristCamCommunicator {
         if (inputStream.available() == 0){
             try {Thread.sleep(100); } catch(Exception e){};
         }
-	int count =0;
+        int count =0;
         while(inputStream.available() == 0){
             try {Thread.sleep(400); } catch(Exception e){};
             log("waiting....");
-	    count++;
-	    if (count ==4){
-            log("resend....");
-		outputStream.write(output);
-		outputStream.flush();
-	    	count =0;
-	    }
+            count++;
+            if (count ==4){
+                log("resend....");
+                outputStream.write(output);
+                outputStream.flush();
+                count =0;
+            }
         }
         return bu.byteArrayToString(output);
     }
@@ -308,8 +318,10 @@ public class CasioWristCamCommunicator {
         }
         log("finished downloading");
     }
-    
+    public void error(String errorMessage){
+        System.out.println(errorMessage);
+    }
     public void log(String logMessage){
-        //System.out.println(logMessage);
+        System.out.println(logMessage);
     }
 }
