@@ -6,7 +6,7 @@
 		<CENTER>
 			<H1>Casio wrist cam WQV-2 protocol</H1>
 			<H2>Kees Jongenburger</H2>
-			<H3>$Id: protocol.html,v 1.1 2003/01/18 07:26:02 keesj Exp $</H3>
+			<H3>$Id: protocol.html,v 1.2 2003/06/01 21:54:27 keesj Exp $</H3>
 		</CENTER>
 		<h2>General packet information</h2>
 		<p>
@@ -43,6 +43,31 @@ The communication is started by sending a packet containing B3<BR>
 it looks like commandos exists of 3 parameter
 B3 01 B2 =&gt; init
 		</p>
+		<a name="imageformat">
+<H3>image format</H3>
+ When transfering data to the computer by means of the pad2 the wacht uses this format.
+ Casio images are stored with the .BIN extention. the image format
+ is quit simple.<BR>
+ try to keep your image in this format it has useluff meta-data
+ <UL>
+    <LI>The image format has a contant size of 7229 bytes.</LI>
+    <LI>The first 24 bytes a the image title(ascii)</LI>
+    <LI>The next 5 bytes are the date and time
+       <UL>
+          <LI>year starting from 2000 (int value of byte + 2000 = year) 0..255</LI>
+          <LI>month (int value of byte = month) 0..11</LI>
+          <LI>day of month (int value of byte = day) 0..31</LI>
+          <LI>hour of day(int value of byte = hour) 0..24</LI>
+          <LI>minutes of day(int value of byte = minutes) 0..59</LI>
+       </UL>
+    </LI>
+    <LI>The next 120 * 60 bytes are the actual image.
+         The image is 120 times 120 pixels with 16 greyscales
+         each pixel is stored in 4 bits so one byte contains 2 pixels
+         the value of the 4 bits is the darkness so 0 (0x0) is white and 16 (0xf) is black.
+         The order is different from what I would expect (the pixel in the 4 MSB is right  of the pixel in the LSB)
+    </LI>
+ </UL>
 </BODY>
 </HTML>
 
