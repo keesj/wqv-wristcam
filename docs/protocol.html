@@ -1,0 +1,48 @@
+<HTML>
+	<HEAD>
+		<TITLE>Casio wrist cam WQV-2 protocol</TITLE>
+	</HEAD>
+	<BODY>
+		<CENTER>
+			<H1>Casio wrist cam WQV-2 protocol</H1>
+			<H2>Kees Jongenburger</H2>
+			<H3>$Id: protocol.html,v 1.1 2002/11/03 11:01:00 keesj Exp $</H3>
+		</CENTER>
+		<h2>General packet information</h2>
+		<p>
+		All packet start with C0 and end with C1. The watch is quit passive and only answers to request.
+		The only exception seems to be that the packet that acknoleges a new created session is sent 3 time.
+		</p>
+		<p>
+The second byte of a packet is the session id. When the session is not yet started the session id is FF<BR>
+		</p>
+		<p>
+		The two last bytes of a packet(before C1) are a checksum. The checksum is calculated by adding all values of the packet (starting with the session id) to each other string the value in a "2 byte value".<BR>
+		<PRE>
+int checksum =0;
+for all bytes to send {
+	checksum += bytevalue;
+}
+checksum = checksum % 0x1000;
+checksum1 = (checksum / 0x100);
+checksum2 = (checksum % 0x100);
+</PRE>
+</p>
+
+<H3>first packet</H3>
+The communication is started by sending a packet containing B3<BR>
+<IMG SRC="01-init.gif" alt="init packet image">
+<H3>second packet</H3>
+<IMG SRC="02-challenge-request.gif" alt="challenge request image"><BR>
+<B>note probably the time is used at this point as a "random key" for the next packet</B>
+
+
+<H3>third packet</H3>
+<IMG SRC="03-session-initiation.gif" alt="session initiation image"><BR>
+<p>
+it looks like commandos exists of 3 parameter
+B3 01 B2 =&gt; init
+		</p>
+</BODY>
+</HTML>
+
