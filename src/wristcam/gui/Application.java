@@ -8,7 +8,7 @@ import java.io.*;
 import java.util.*;
 /**
  * @author Kees Jongenburger
- * @version $Id: Application.java,v 1.1 2002/11/03 11:01:01 keesj Exp $
+ * @version $Id: Application.java,v 1.2 2003/07/07 08:11:44 keesj Exp $
  **/
 public class Application extends JFrame implements ActionListener{
     JButton exitButton;
@@ -66,7 +66,8 @@ public class Application extends JFrame implements ActionListener{
                 tabPane.addTab("downloaded images",sp);
                 new ImageDownloadingThread(wqvImagesPanel,device);
         } else if (actionEvent.getSource() == navigateButton){
-		NavigationPanel nav  = new NavigationPanel("/home/keesj/wristcam/keep");
+		//NavigationPanel nav  = new NavigationPanel("/home/keesj/wristcam/keep");
+		NavigationPanel nav  = new NavigationPanel(System.getProperty("user.home"));
 		JScrollPane sp = new JScrollPane(nav);
                 tabPane.addTab("navigation",sp);
         } else if (actionEvent.getSource() == exitButton){
