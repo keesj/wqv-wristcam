@@ -1,3 +1,6 @@
+#
+# $Id: Makefile,v 1.2 2002/11/03 11:36:10 keesj Exp $
+#
 all:compile
 
 prepare:
@@ -9,3 +12,5 @@ clean:
 	rm -rf build
 run:compile
 	cd build && java wristcam.gui.Application
+jar:compile
+	cd build && jar cfm ../wqv-wristcam.jar ../resources/MANIFEST.MF wristcam
