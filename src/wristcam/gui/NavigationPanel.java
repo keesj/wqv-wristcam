@@ -9,14 +9,17 @@ import java.io.*;
 /**
  *
  * @author Kees Jongenburger
- * @version $Id: NavigationPanel.java,v 1.1 2002/11/03 11:01:01 keesj Exp $
+ * @version $Id: NavigationPanel.java,v 1.2 2002/11/12 22:14:42 keesj Exp $
  */
-public class NavigationPanel extends JPanel{
+public class NavigationPanel extends JPanel implements ActionListener{
     WQVImagesPanel wqvImagesPanel;
+    JTextField textField;
     
     public NavigationPanel(String directory) {
         setLayout(new BorderLayout());
-        
+        textField = new JTextField(directory);
+        textField.addActionListener(this);
+        add(textField,BorderLayout.NORTH);
         wqvImagesPanel = new WQVImagesPanel();
         add(wqvImagesPanel,BorderLayout.CENTER);
         try {
@@ -27,8 +30,8 @@ public class NavigationPanel extends JPanel{
     }
     
     public void readDir(File directory) throws IOException{
-        //imageCanvas.removeAll();
         if (directory.isDirectory()){
+            wqvImagesPanel.removeAll();
             File[] files = directory.listFiles();
             for (int x =0 ; x < files.length ; x++){
                 File file = files[x];
@@ -42,7 +45,22 @@ public class NavigationPanel extends JPanel{
                     }
                 }
             }
+            //wqvImagesPanel.validate();
+            validate();
+            repaint();
         }
-	wqvImagesPanel.validate();
     }
+    
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == textField){
+            
+            try {
+                readDir(new File(textField.getText()));
+            } catch (Exception ex){
+                System.err.println("error:" + ex.getMessage());
+            };
+            System.err.println(textField.getText());
+        }
+    }
+    
 }
