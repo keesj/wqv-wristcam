@@ -1,12 +1,12 @@
 #
-# $Id: Makefile,v 1.2 2002/11/03 11:36:10 keesj Exp $
+# $Id: Makefile,v 1.3 2003/07/07 08:27:03 keesj Exp $
 #
 all:compile
 
 prepare:
 	test -d build || mkdir  build
 compile:prepare
-	javac -d build src/wristcam/*/*.java
+	javac -target 1.3 -d build src/wristcam/*/*.java
 	cp -r src/wristcam/gui/resources build/wristcam/gui/
 clean:
 	rm -rf build
