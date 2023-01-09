@@ -5,6 +5,11 @@ import java.util.*;
 import java.awt.*;
 import java.awt.image.*;
 
+
+import javax.imageio.ImageIO ;
+
+
+
 /**
  * Class to handle images from a casio WQV-2 wrist cam.<BR>
  * When transfering data to the computer by means of the pad2 the wacht uses this format.
@@ -196,6 +201,35 @@ public class WQVImage  implements Runnable{
         return image;
     }
     
+    public static BufferedImage toBufferedImage(Image img)
+{
+    if (img instanceof BufferedImage)
+    {
+        return (BufferedImage) img;
+    }
+
+    // Create a buffered image with transparency
+    BufferedImage bimage = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+
+    // Draw the image on to the buffered image
+    Graphics2D bGr = bimage.createGraphics();
+    bGr.drawImage(img, 0, 0, null);
+    bGr.dispose();
+
+    // Return the buffered image
+    return bimage;
+}
+
+    public void saveImageToPNG(String fileName){
+
+        try {
+            File file = new File(fileName);
+            ImageIO.write(toBufferedImage(getImage()), "PNG", file);
+        } catch(IOException ioe){
+
+        }
+    }
+
     public void saveImageToBin(String fileName){
         try {
             File file = new File(fileName);
@@ -271,13 +305,17 @@ public class WQVImage  implements Runnable{
      **/
     public static void main(String[] argv) throws Exception{
         if (argv.length != 2){
-            System.err.println("usage: " + WQVImage.class.getName() +" in.bin out.xpm");
+            System.err.println("usage: " + WQVImage.class.getName() +" in.bin out.[xpm|png]");
             System.exit(1);
         }
         File file = new File(argv[0]);
         InputStream in = new FileInputStream(file);
         WQVImage image  = new WQVImage();
         image.initializeImageFromInputStream(in);
-        image.saveImageToXpm(argv[1]);
+        if (argv[1].toLowerCase().endsWith(".png")){
+            image.saveImageToPNG(argv[1]);
+        } else {
+            image.saveImageToXpm(argv[1]);
+        }
     }
 }

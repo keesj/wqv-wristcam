@@ -28,6 +28,8 @@ public class ImageDownloadingThread implements Runnable{
 			WQVImage image = (WQVImage)images.elementAt(x);
 			image.saveImageToXpm(startString + x + ".xpm");
 			image.saveImageToBin(startString + x + ".bin");
+			image.saveImageToPNG(startString + x + ".png");
+
 		}
             } catch (IOException ioe){
                 System.err.println("IO exception while downloading images");

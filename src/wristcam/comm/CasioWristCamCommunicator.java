@@ -2,6 +2,8 @@ package wristcam.comm;
 
 import java.io.*;
 import java.util.*;
+import java.util.logging.Logger;
+
 //NOTE
 //if you are using javax.comm change gnu.io to javax.comm
 import gnu.io.*;
@@ -13,6 +15,9 @@ import wristcam.gui.*;
  * @version $Id: CasioWristCamCommunicator.java,v 1.2 2002/11/12 20:06:51 keesj Exp $
  **/
 public class CasioWristCamCommunicator {
+
+    private static final Logger log = Logger.getLogger( CasioWristCamCommunicator.class.getName() );
+
     public static final byte PACKET_START_BYTE = (byte)0xc0;
     public static final byte PACKET_END_BYTE = (byte)0xc1;
     public static final byte ESCAPE_BYTE = (byte)0x7D;
@@ -41,20 +46,26 @@ public class CasioWristCamCommunicator {
                 //if no device was selected take the first one
                 //else try to find the richt device
                 if ( deviceName == null || ci.getName().equals(deviceName)){
+                    log.info("Using device : " + deviceName);
                     portId = ci;
                 }
             }
         }
         if (portId ==  null){
+            log.info("No serial port was found");
             return;
         }
         try {
             serialPort = (SerialPort) portId.open("CasioWristCamCommunicator", 2000);
-        } catch (PortInUseException e) {}
+        } catch (PortInUseException e) {
+            log.info("Port in use : " + deviceName);
+        }
         try {
             inputStream = serialPort.getInputStream();
             outputStream = serialPort.getOutputStream();
-        } catch (IOException e) {}
+        } catch (IOException e) {
+
+        }
         
         try {
             serialPort.setSerialPortParams(115200,
@@ -70,12 +81,12 @@ public class CasioWristCamCommunicator {
         sendFrame("54 06");
         byte[] data = readFrame();
         if (data[1] != 0x43){
-            error("excpeting 0x43 as answer while trying to close connection{"+bu.byteToString(data[1])+"}");
+            log.warning("excpeting 0x43 as answer while trying to close connection{"+bu.byteToString(data[1])+"}");
         }
         sendFrame("53");
         data = readFrame();
         if (data[1] != 0x63){
-            error("excpeting 0x63 as answer while trying to close connection{"+ bu.byteToString(data[1])+"}");
+            log.warning("excpeting 0x63 as answer while trying to close connection{"+ bu.byteToString(data[1])+"}");
         }
         
         serialPort.close();
@@ -121,7 +132,7 @@ public class CasioWristCamCommunicator {
         
         byte[] output = baos.toByteArray();
         baos.close();
-        log("s: " + bu.byteArrayToString(output));
+        log.info("s: " + bu.byteArrayToString(output));
         outputStream.write(output);
         
         outputStream.flush();
@@ -131,10 +142,10 @@ public class CasioWristCamCommunicator {
         int count =0;
         while(inputStream.available() == 0){
             try {Thread.sleep(400); } catch(Exception e){};
-            log("waiting....");
+            log.info("waiting....");
             count++;
             if (count ==4){
-                log("resend....");
+                log.info("resend....");
                 outputStream.write(output);
                 outputStream.flush();
                 count =0;
@@ -196,10 +207,10 @@ public class CasioWristCamCommunicator {
         value = value % 0x10000;
         
         if ( checksum != value){
-            log("Wrong checksum");
+            log.warning("Wrong checksum");
         }
         
-        log("r: " + bu.byteArrayToString(retval));
+        log.info("r: " + bu.byteArrayToString(retval));
         return retval;
     }
     
@@ -207,17 +218,17 @@ public class CasioWristCamCommunicator {
         sessionID =(byte) 0xFF;
         
         flushInputStream();
-        log("init");
+        log.info("init");
         sendFrame("B3");
         
         byte[] answer = readFrame();
         
         if ( answer[1] !=(byte) 0xA3){
-            log("r: " + bu.byteArrayToString(answer) + "  ==> ERROR expecting session request chalange");
+            log.info("r: " + bu.byteArrayToString(answer) + "  ==> ERROR expecting session request chalange");
             return ;
         }
         
-        log("r: " + bu.byteArrayToString(answer) + " ==> session request chalange");
+        log.info("r: " + bu.byteArrayToString(answer) + " ==> session request chalange");
         
         byte[] data =new byte[6];
         
@@ -233,26 +244,26 @@ public class CasioWristCamCommunicator {
         byte tempSessionID = (byte)(1 + (int) (255.0 * random.nextInt()/(Integer.MAX_VALUE + 1.0)));
         data[5] = tempSessionID;
         
-        log("send session id");
+        log.info("send session id");
         sendFrame(data);
         sessionID = tempSessionID;
         
         
         readFrame();
         flushInputStream();
-        log("Connected!");
+        log.info("Connected!");
     }
     
     public void waitForInput() throws IOException{
-        if (inputStream.available() == 0) log("Wait for input");
+        if (inputStream.available() == 0) log.info("Wait for input");
         while (inputStream.available() == 0){
             try {Thread.sleep(200); } catch(Exception e){};
-            log(".");
+            log.info(".");
         }
     }
     
     public void getImages(ImageStreamHandler imgh) throws IOException{
-        log("read images");
+        log.info("read images");
         flushInputStream();
         
         
@@ -262,37 +273,37 @@ public class CasioWristCamCommunicator {
         
         //10 01 ==> get all images
         //10 00 ==> get one image
-        log("ask to download multiple pictures");
+        log.info("ask to download multiple pictures");
         sendFrame("10 01");
         byte[] answer = readFrame();
         //r: 60 21 00 81
         if (answer[1] != 0x21){ //21 is ok?
-            log("r: " + bu.byteArrayToString(answer) + " ==> error expecting 0x21");
+            log.info("r: " + bu.byteArrayToString(answer) + " ==> error expecting 0x21");
             return;
         }
         
-        log("get current information ");
+        log.info("get current information ");
         sendFrame("11");//11 is information?
         answer = readFrame();
         //r: 60 20 07 FA 1C 3D 18 01 F2
         
         if (answer[1] != 0x20){ //frame type 20?
-            log("r: " + bu.byteArrayToString(answer) + " ==> error expecting 0x20");
+            log.info("r: " + bu.byteArrayToString(answer) + " ==> error expecting 0x20");
             return;
         }
         int numberOfImages = answer[6] &0xff;
         imgh.setImageCount(numberOfImages);
-        log("Threre are " + numberOfImages + " images on the watch");
+        log.info("Threre are " + numberOfImages + " images on the watch");
         
-        log("send misc frame");
+        log.info("send misc frame");
         sendFrame("32 06");
         answer = readFrame();
         if (answer[1] != 0x41){
-            log("r: " + bu.byteArrayToString(answer) + " ==> error expecting 0x41");
+            log.info("r: " + bu.byteArrayToString(answer) + " ==> error expecting 0x41");
             return;
         }
         
-        log("get data");
+        log.info("get data");
         String [] requestKeys=new String[]{"11","31","51","71","91","B1","D1","F1"};
         byte [] responseKeys =new byte[]{(byte)0x40,(byte)0x42,(byte)0x44,(byte)0x46,(byte)0x48,(byte)0x4A,(byte)0x4C,(byte)0x4E};
         
@@ -302,10 +313,10 @@ public class CasioWristCamCommunicator {
         while(byteCount < numberOfImages * 7229) {
             
             sendFrame(requestKeys[counter]);
-            log(".");
+            log.info(".");
             byte [] data = readFrame();
             if (data[1] != responseKeys[counter] || data[2] != 0x05){
-                log("wrong frame");
+                log.info("wrong frame");
             } else {
                 for (int x =3 ; x < data.length - 2 ; x++){
                     imgh.write(data[x]);
@@ -316,12 +327,7 @@ public class CasioWristCamCommunicator {
             
             counter = (counter +1) %8;
         }
-        log("finished downloading");
+        log.info("finished downloading");
     }
-    public void error(String errorMessage){
-        System.out.println(errorMessage);
-    }
-    public void log(String logMessage){
-        System.out.println(logMessage);
-    }
+
 }
